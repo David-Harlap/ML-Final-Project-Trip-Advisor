@@ -28,3 +28,11 @@ def divide(divide_precent: int, df: pd.DataFrame):
     test_y = test["Rate"]
     test_x = test.drop(columns=["Rate"])
     return train_x, train_y, test_x, test_y
+
+def split_x_y(df: pd.DataFrame):
+    df = df.reset_index(drop=True)
+    y = df["Rate"]
+    x = df.drop(columns=["Rate"])
+    return x, y
+
+
