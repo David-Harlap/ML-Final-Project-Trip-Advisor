@@ -1,11 +1,21 @@
 import pandas as pd
 from copy import deepcopy
 
+import constants
+
 
 def read_database_from_csv(csv_file):
     df = pd.read_csv(csv_file, header=None)
     df.columns = ['Review', 'Rate']  # Set column names
-    return df[1:]
+    return df.iloc[1:]
+
+
+def read_featured_data_from_csv(csv_file: str):
+    df = pd.read_csv(csv_file, header=None)
+    df.columns = [constants.letter, constants.words, constants.sentences, constants.adjective, constants.comp_score,
+                  constants.pos_score, constants.neg_score, constants.neu_score, constants.readability, constants.rate]
+    df = shuffle(df.iloc[1:])
+    return df
 
 
 def shuffle(df: pd.DataFrame):
@@ -35,5 +45,3 @@ def split_x_y(df: pd.DataFrame):
     y = df["Rate"]
     x = df.drop(columns=["Rate"])
     return x, y
-
-

@@ -3,19 +3,32 @@ from sklearn import tree
 import numpy as np
 
 import constants
-from PreProcessing import create_review_length_features, under_sampling
-from Utils import divide, read_database_from_csv, split_x_y
+from PreProcessing import create_df_with_all_features, under_sampling, parse_all_features
+from Utils import divide, read_featured_data_from_csv, split_x_y
 
 import matplotlib.pyplot as plt
 from sklearn.metrics import ConfusionMatrixDisplay
 
 
-class ReviewLengthDTModel:
+def get_samples(df: pd.DataFrame):
+    new_df = df.loc[:, [constants.letter, constants.words, constants.sentences, constants.rate]]
+    return new_df
+
+
+"""
+This model is a Decision Tree based model that will get multiple enumerations of a review as a features:
+1. The length of the review in terms of characters
+2. The number of words used
+3. The number of sentences used
+"""
+
+
+class ReviewEnumeratiohDTModel:
     def __init__(self, df: pd.DataFrame, max_depth: int):
-        length_df = create_review_length_features(df)
-        train, test = under_sampling(length_df)
+        temp_df = get_samples(df)
+        train, test = under_sampling(temp_df)
         self.train_x, self.train_y = split_x_y(train)
-        self.test_x, self.test_y =  split_x_y(test)
+        self.test_x, self.test_y = split_x_y(test)
         self.clf = tree.DecisionTreeClassifier(max_depth=max_depth)
 
     def fit_model(self):
@@ -35,8 +48,8 @@ class ReviewLengthDTModel:
 
         # Plot non-normalized confusion matrix
         titles_options = [
-            ("Review Length decision tree Confusion matrix, without normalization", None),
-            ("Review Length decision tree Normalized confusion matrix", "true"),
+            ("Review Enumeration decision tree Confusion matrix, without normalization", None),
+            ("Review Enumeration decision tree Normalized confusion matrix", "true"),
         ]
         for title, normalize in titles_options:
             disp = ConfusionMatrixDisplay.from_estimator(
@@ -55,12 +68,18 @@ class ReviewLengthDTModel:
         plt.show()
 
 
-df = read_database_from_csv(csv_file='Data/tripadvisor_hotel_reviews.csv')
-precent = 80
-depth = 8
-model = ReviewLengthDTModel(df, precent, depth)
+# df = read_database_from_csv(csv_file='Data/tripadvisor_hotel_reviews.csv')
+# temp_df = create_df_with_all_features(df)
+# temp_df.to_csv(path_or_buf='Data/tripdavisor_featured_data.csv')
+
+df = read_featured_data_from_csv(csv_file='Data/tripdavisor_featured_data.csv')
+df = parse_all_features(df)
+
+#
+depth = 3
+model = ReviewEnumeratiohDTModel(df, depth)
 model.fit_model()
-# data = pd.DataFrame([600], columns=["Length"])
-# print(model.predict(data))
+# # # data = pd.DataFrame([600], columns=["Length"])
+# # # print(model.predict(data))
 # model.plot_tree()
 model.test_and_plot()
