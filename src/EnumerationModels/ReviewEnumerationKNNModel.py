@@ -1,10 +1,10 @@
 import pandas as pd
-from sklearn import tree
+from sklearn.neighbors import KNeighborsClassifier
 import numpy as np
 
-import constants
-from PreProcessing import create_df_with_all_features, under_sampling, parse_all_features
-from Utils import divide, read_featured_data_from_csv, split_x_y
+import src.constants as constants
+from src.PreProcessing import create_df_with_all_features, svm_under_sampling, under_sampling, parse_all_features
+from src.Utils import divide, read_featured_data_from_csv, split_x_y
 
 import matplotlib.pyplot as plt
 from sklearn.metrics import ConfusionMatrixDisplay
@@ -23,13 +23,13 @@ This model is a Decision Tree based model that will get multiple enumerations of
 """
 
 
-class ReviewEnumeratiohDTModel:
-    def __init__(self, df: pd.DataFrame, max_depth: int):
+class ReviewEnumeratiohKNNModel:
+    def __init__(self, df: pd.DataFrame, k: int, p: int, undersamepling_func):
         temp_df = get_samples(df)
-        train, test = under_sampling(temp_df)
+        train, test = undersamepling_func(temp_df)
         self.train_x, self.train_y = split_x_y(train)
         self.test_x, self.test_y = split_x_y(test)
-        self.clf = tree.DecisionTreeClassifier(max_depth=max_depth)
+        self.clf = KNeighborsClassifier(n_neighbors=k, p=p, weights='distance')
 
     def fit_model(self):
         self.clf = self.clf.fit(self.train_x, self.train_y)
@@ -38,18 +38,13 @@ class ReviewEnumeratiohDTModel:
     def predict(self, length):
         return self.clf.predict(length)
 
-    def plot_tree(self):
-        fig, ax = plt.subplots(figsize=(20, 20))  # whatever size you want
-        tree.plot_tree(self.clf, ax=ax, fontsize=8)
-        plt.show()
-
     def test_and_plot(self):
         np.set_printoptions(precision=2)
 
         # Plot non-normalized confusion matrix
         titles_options = [
-            ("Review Enumeration decision tree Confusion matrix, without normalization", None),
-            ("Review Enumeration decision tree Normalized confusion matrix", "true"),
+            ("Review Enumeration KNN Confusion matrix, without normalization", None),
+            ("Review Enumeration KNN Normalized confusion matrix", "true"),
         ]
         for title, normalize in titles_options:
             disp = ConfusionMatrixDisplay.from_estimator(
@@ -72,12 +67,16 @@ class ReviewEnumeratiohDTModel:
 # temp_df = create_df_with_all_features(df)
 # temp_df.to_csv(path_or_buf='Data/tripdavisor_featured_data.csv')
 
-df = read_featured_data_from_csv(csv_file='Data/tripdavisor_featured_data.csv')
+df = read_featured_data_from_csv(csv_file='../../Data/tripdavisor_featured_data.csv')
 df = parse_all_features(df)
 
 #
-depth = 3
-model = ReviewEnumeratiohDTModel(df, depth)
+f = under_sampling
+g = svm_under_sampling
+k = 6
+p = 2
+#model = ReviewEnumeratiohKNNModel(df, k, p, f)
+model = ReviewEnumeratiohKNNModel(df, k, p, g)
 model.fit_model()
 # # # data = pd.DataFrame([600], columns=["Length"])
 # # # print(model.predict(data))

@@ -1,7 +1,7 @@
 import copy
 import string
-from Utils import read_database_from_csv, pd, divide
-import constants
+from src.Utils import read_database_from_csv, pd, divide
+import src.constants as constants
 import textstat
 
 import nltk
