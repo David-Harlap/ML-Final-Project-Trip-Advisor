@@ -12,8 +12,9 @@ def read_database_from_csv(csv_file):
 
 def read_featured_data_from_csv(csv_file: str):
     df = pd.read_csv(csv_file, header=None)
-    df.columns = [constants.letter, constants.words, constants.sentences, constants.adjective, constants.comp_score,
-                  constants.pos_score, constants.neg_score, constants.neu_score, constants.readability, constants.rate]
+    df.columns = [constants.letter, constants.words, constants.sentences, constants.adjective, constants.verb,
+                  constants.noun, constants.comp_score, constants.pos_score, constants.neg_score, constants.neu_score,
+                  constants.readability, constants.rate]
     df = shuffle(df.iloc[1:])
     return df
 

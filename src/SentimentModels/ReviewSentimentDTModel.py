@@ -1,9 +1,9 @@
 import pandas as pd
-from sklearn.svm import SVC
+from sklearn import tree
 import numpy as np
 
 import src.constants as constants
-from src.PreProcessing import create_df_with_all_features, svm_under_sampling, parse_all_features
+from src.PreProcessing import create_df_with_all_features, under_sampling, parse_all_features
 from src.Utils import divide, read_featured_data_from_csv, split_x_y
 
 import matplotlib.pyplot as plt
@@ -11,7 +11,7 @@ from sklearn.metrics import ConfusionMatrixDisplay
 
 
 def get_samples(df: pd.DataFrame):
-    new_df = df.loc[:, [constants.letter, constants.words, constants.sentences, constants.rate]]
+    new_df = df.loc[:, [constants.pos_score, constants.neg_score, constants.neu_score, constants.rate]]
     return new_df
 
 
@@ -23,13 +23,14 @@ This model is a Decision Tree based model that will get multiple enumerations of
 """
 
 
-class ReviewEnumerationSVM_Model:
-    def __init__(self, df: pd.DataFrame):
+class ReviewSentimentDTModel:
+    def __init__(self, df: pd.DataFrame, max_depth: int):
         temp_df = get_samples(df)
-        train, test = svm_under_sampling(temp_df)
+        train, test = under_sampling(temp_df)
         self.train_x, self.train_y = split_x_y(train)
         self.test_x, self.test_y = split_x_y(test)
-        self.clf = SVC(kernel='linear', gamma='scale', shrinking=True)
+        self.clf = tree.DecisionTreeClassifier(max_depth=max_depth)
+        self.max_depth = max_depth
 
     def fit_model(self):
         self.clf = self.clf.fit(self.train_x, self.train_y)
@@ -38,13 +39,18 @@ class ReviewEnumerationSVM_Model:
     def predict(self, length):
         return self.clf.predict(length)
 
+    def plot_tree(self):
+        fig, ax = plt.subplots(figsize=(20, 20))  # whatever size you want
+        tree.plot_tree(self.clf, ax=ax, fontsize=8)
+        plt.show()
+
     def test_and_plot(self):
         np.set_printoptions(precision=2)
 
         # Plot non-normalized confusion matrix
         titles_options = [
-            ("Review Enumeration SVM Confusion matrix, without normalization", None),
-            ("Review Enumeration SVM Normalized confusion matrix", "true"),
+            (f"Review Sentiment KNN Confusion matrix, without normalization", None),
+            (f"Review Sentiment KNN Normalized confusion matrix", "true"),
         ]
         for title, normalize in titles_options:
             disp = ConfusionMatrixDisplay.from_estimator(
@@ -71,7 +77,8 @@ df = read_featured_data_from_csv(csv_file='../../Data/tripdavisor_featured_data.
 df = parse_all_features(df)
 
 #
-model = ReviewEnumerationSVM_Model(df)
+depth = 15
+model = ReviewSentimentDTModel(df, depth)
 model.fit_model()
 # # # data = pd.DataFrame([600], columns=["Length"])
 # # # print(model.predict(data))

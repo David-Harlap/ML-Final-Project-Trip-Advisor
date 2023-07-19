@@ -169,9 +169,9 @@ def parse_all_features(df: pd.DataFrame):
     #                                constants.readability, constants.rate])
     # return new_df
     df = df.astype({constants.letter: 'int32', constants.words: 'int32', constants.sentences: 'int32',
-                    constants.adjective: 'int32', constants.comp_score: 'float', constants.pos_score: 'float',
-                    constants.neg_score: 'float', constants.neu_score: 'float', constants.readability: 'float',
-                    constants.rate: 'int32'})
+                    constants.adjective: 'int32', constants.verb: 'int32', constants.noun: 'int32',
+                    constants.comp_score: 'float', constants.pos_score: 'float', constants.neg_score: 'float',
+                    constants.neu_score: 'float', constants.readability: 'float', constants.rate: 'int32'})
     print(df.dtypes)
     return df
 

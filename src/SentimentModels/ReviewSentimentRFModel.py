@@ -1,5 +1,5 @@
 import pandas as pd
-from sklearn import tree
+from sklearn.ensemble import RandomForestClassifier
 import numpy as np
 
 import src.constants as constants
@@ -11,7 +11,7 @@ from sklearn.metrics import ConfusionMatrixDisplay
 
 
 def get_samples(df: pd.DataFrame):
-    new_df = df.loc[:, [constants.letter, constants.words, constants.sentences, constants.rate]]
+    new_df = df.loc[:, [constants.pos_score, constants.neg_score, constants.neu_score, constants.rate]]
     return new_df
 
 
@@ -23,13 +23,14 @@ This model is a Decision Tree based model that will get multiple enumerations of
 """
 
 
-class ReviewEnumerationDTModel:
+class ReviewSentimentRF_Model:
     def __init__(self, df: pd.DataFrame, max_depth: int):
         temp_df = get_samples(df)
         train, test = under_sampling(temp_df)
         self.train_x, self.train_y = split_x_y(train)
         self.test_x, self.test_y = split_x_y(test)
-        self.clf = tree.DecisionTreeClassifier(max_depth=max_depth)
+        self.clf = RandomForestClassifier(max_depth=max_depth, random_state=0)
+        self.max_depth = max_depth
 
     def fit_model(self):
         self.clf = self.clf.fit(self.train_x, self.train_y)
@@ -38,9 +39,37 @@ class ReviewEnumerationDTModel:
     def predict(self, length):
         return self.clf.predict(length)
 
-    def plot_tree(self):
-        fig, ax = plt.subplots(figsize=(20, 20))  # whatever size you want
-        tree.plot_tree(self.clf, ax=ax, fontsize=8)
+    def plot_test_data(self):
+        # Creating figure
+        fig = plt.figure(figsize=(16, 9))
+        ax = plt.axes(projection="3d")
+
+        # Add x, y gridlines
+        ax.grid(b=True, color='grey',
+                linestyle='-.', linewidth=0.3,
+                alpha=0.2)
+        plt.title("Model test data distribution")
+        ax.set_xlabel('Positivity Score', fontweight='bold')
+        ax.set_ylabel('Negativity Score', fontweight='bold')
+        ax.set_zlabel('Neutrality Score', fontweight='bold')
+        X = [[], [], [], [], []]
+        Y = [[], [], [], [], []]
+        Z = [[], [], [], [], []]
+        color = ['black', 'gray', 'blue', 'green', 'red']
+        shape = ['.', 'o', 'd', 'D', '*']
+        for i in range(len(self.test_x)):
+            rate = self.test_y.iloc[i]
+            pos = self.test_x.iloc[i][constants.pos_score]
+            neg = self.test_x.iloc[i][constants.neg_score]
+            neu = self.test_x.iloc[i][constants.neu_score]
+            X[rate-1].append(pos)
+            Y[rate-1].append(neg)
+            Z[rate-1].append(neu)
+
+        for i in range(len(color)):
+            ax.scatter3D(X[i], Y[i], Z[i], color=color[i], marker=shape[i])
+
+        plt.legend(["Rate 1", "Rate 2", "Rate 3", "Rate 4", "Rate 5"])
         plt.show()
 
     def test_and_plot(self):
@@ -48,8 +77,8 @@ class ReviewEnumerationDTModel:
 
         # Plot non-normalized confusion matrix
         titles_options = [
-            ("Review Enumeration decision tree Confusion matrix, without normalization", None),
-            ("Review Enumeration decision tree Normalized confusion matrix", "true"),
+            (f"Review Sentiment Random Forest with max depth {self.max_depth} matrix, without normalization", None),
+            (f"Review Sentiment Random Forest with max depth {self.max_depth} Normalized confusion matrix", "true"),
         ]
         for title, normalize in titles_options:
             disp = ConfusionMatrixDisplay.from_estimator(
@@ -74,12 +103,12 @@ class ReviewEnumerationDTModel:
 
 df = read_featured_data_from_csv(csv_file='../../Data/tripdavisor_featured_data.csv')
 df = parse_all_features(df)
-
+depth = 100
 #
-depth = 3
-model = ReviewEnumerationDTModel(df, depth)
+model = ReviewSentimentRF_Model(df, depth)
 model.fit_model()
 # # # data = pd.DataFrame([600], columns=["Length"])
 # # # print(model.predict(data))
 # model.plot_tree()
 model.test_and_plot()
+#model.plot_test_data()
