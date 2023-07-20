@@ -1,7 +1,7 @@
 import pandas as pd
 from copy import deepcopy
 
-import src.constants as constants
+import constants as constants
 
 
 def read_database_from_csv(csv_file):

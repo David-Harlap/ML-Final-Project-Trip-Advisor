@@ -2,9 +2,9 @@ import pandas as pd
 from sklearn import tree
 import numpy as np
 
-import src.constants as constants
-from src.PreProcessing import create_df_with_all_features, under_sampling, parse_all_features
-from src.Utils import divide, read_featured_data_from_csv, split_x_y
+import constants as constants
+from PreProcessing import create_df_with_all_features, under_sampling, parse_all_features
+from Utils import divide, read_featured_data_from_csv, split_x_y
 
 import matplotlib.pyplot as plt
 from sklearn.metrics import ConfusionMatrixDisplay

@@ -11,7 +11,7 @@ from sklearn.metrics import ConfusionMatrixDisplay
 
 
 def get_samples(df: pd.DataFrame):
-    new_df = df.loc[:, [constants.pos_score, constants.neg_score, constants.neu_score, constants.rate]]
+    new_df = df.loc[:, [constants.adjective, constants.verb, constants.noun, constants.rate]]
     return new_df
 
 
@@ -23,7 +23,7 @@ This model is a Decision Tree based model that will get multiple enumerations of
 """
 
 
-class ReviewSentimentSVM_Model:
+class ReviewEnumerationSVM_Model:
     def __init__(self, df: pd.DataFrame):
         temp_df = get_samples(df)
         train, test = svm_under_sampling(temp_df)
@@ -38,46 +38,13 @@ class ReviewSentimentSVM_Model:
     def predict(self, length):
         return self.clf.predict(length)
 
-    def plot_test_data(self):
-        # Creating figure
-        fig = plt.figure(figsize=(16, 9))
-        ax = plt.axes(projection="3d")
-
-        # Add x, y gridlines
-        ax.grid(b=True, color='grey',
-                linestyle='-.', linewidth=0.3,
-                alpha=0.2)
-        plt.title("Model test data distribution")
-        ax.set_xlabel('Positivity Score', fontweight='bold')
-        ax.set_ylabel('Negativity Score', fontweight='bold')
-        ax.set_zlabel('Neutrality Score', fontweight='bold')
-        X = [[], [], [], [], []]
-        Y = [[], [], [], [], []]
-        Z = [[], [], [], [], []]
-        color = ['black', 'gray', 'blue', 'green', 'red']
-        shape = ['.', 'o', 'd', 'D', '*']
-        for i in range(len(self.test_x)):
-            rate = self.test_y.iloc[i]
-            pos = self.test_x.iloc[i][constants.pos_score]
-            neg = self.test_x.iloc[i][constants.neg_score]
-            neu = self.test_x.iloc[i][constants.neu_score]
-            X[rate-1].append(pos)
-            Y[rate-1].append(neg)
-            Z[rate-1].append(neu)
-
-        for i in range(len(color)):
-            ax.scatter3D(X[i], Y[i], Z[i], color=color[i], marker=shape[i])
-
-        plt.legend(["Rate 1", "Rate 2", "Rate 3", "Rate 4", "Rate 5"])
-        plt.show()
-
     def test_and_plot(self):
         np.set_printoptions(precision=2)
 
         # Plot non-normalized confusion matrix
         titles_options = [
-            ("Review Sentiment SVM matrix, without normalization", None),
-            ("Review Sentiment SVM Normalized confusion matrix", "true"),
+            ("Review 'Point of Speech' SVM Confusion matrix, without normalization", None),
+            ("Review 'Point of Speech' SVM Normalized confusion matrix", "true"),
         ]
         for title, normalize in titles_options:
             disp = ConfusionMatrixDisplay.from_estimator(
@@ -92,6 +59,7 @@ class ReviewSentimentSVM_Model:
 
             print(title)
             print(disp.confusion_matrix)
+
             total_samples = np.sum(disp.confusion_matrix)
             print(total_samples)
             misclassifications = total_samples - np.trace(disp.confusion_matrix)
@@ -111,10 +79,9 @@ df = read_featured_data_from_csv(csv_file='../../Data/tripdavisor_featured_data.
 df = parse_all_features(df)
 
 #
-model = ReviewSentimentSVM_Model(df)
+model = ReviewEnumerationSVM_Model(df)
 model.fit_model()
 # # # data = pd.DataFrame([600], columns=["Length"])
 # # # print(model.predict(data))
 # model.plot_tree()
 model.test_and_plot()
-model.plot_test_data()
